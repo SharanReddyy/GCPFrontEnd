@@ -18,21 +18,23 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE_NAME .'
+                sh "docker build -t ${DOCKER_IMAGE_NAME} ."
             }
         }
 
         stage('Push Docker Image to GCR') {
             steps {
-                sh 'docker login -u _json_key --password-stdin < credentials:id("GCPCredentials")'
-                sh 'docker push $DOCKER_IMAGE_NAME'
+                withCredentials([file(credentialsId: 'GCPCredentials', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    sh 'cat $GOOGLE_APPLICATION_CREDENTIALS | docker login -u _json_key --password-stdin https://gcr.io'
+                    sh "docker push ${DOCKER_IMAGE_NAME}"
+                }
             }
         }
 
         stage('Deploy to GKE') {
             steps {
                 withCredentials([file(credentialsId: 'GCPCredentials', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    sh "gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_ZONE --project $PROJECT_ID"
+                    sh "gcloud container clusters get-credentials ${CLUSTER_NAME} --zone ${CLUSTER_ZONE} --project ${PROJECT_ID}"
                     sh "kubectl apply -f ."
                 }
             }
