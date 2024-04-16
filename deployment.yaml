@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: gcr.io/advance-display-419312/gcpimagee:v2
+          image: gcr.io/advance-display-419312/gcpimagee:v3
           ports:
             - containerPort: 80
